@@ -3,8 +3,6 @@ name: Publish Helm Chart and Repository
 on:
   release:
     types: [published]
-  push:
-    branches: [ main ]  # Optional: also update repo on pushes to main
 
 jobs:
   publish-helm:
@@ -47,22 +45,20 @@ jobs:
         fi
 
     - name: Upload Helm chart to Release
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.package.outputs.chart_file }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ steps.package.outputs.chart_file }}
-        asset_name: s3-smart-browser-${{ github.ref_name }}.tgz
-        asset_content_type: application/gzip
 
-    - name: Setup GitHub Pages
-      uses: actions/configure-pages@v3
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
 
-    - name: Upload repository files to GitHub Pages
-      uses: actions/upload-pages-artifact@v2
+    - name: Upload pages artifact
+      uses: actions/upload-pages-artifact@v3
       with:
         path: ./helm-packages/
 
     - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v2
+      id: deployment
+      uses: actions/deploy-pages@v4
