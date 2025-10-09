@@ -3,7 +3,7 @@
 replicaCount: 2
 
 image:
-  repository: s3-smart-browser
+  repository: ghcr.io/blackojack/s3-smart-browser
   tag: latest
   pullPolicy: IfNotPresent
 
