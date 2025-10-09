@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"s3-browser/internal/config"
-	"s3-browser/internal/types"
+	"s3-smart-browser/internal/config"
+	"s3-smart-browser/internal/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"

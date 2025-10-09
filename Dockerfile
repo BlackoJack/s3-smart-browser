@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o s3-browser ./cmd/server/
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o s3-smart-browser ./cmd/server/
 
 # Runtime stage
 FROM alpine:latest
@@ -32,7 +32,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /root/
 
 # Copy binary from builder
-COPY --from=builder /app/s3-browser .
+COPY --from=builder /app/s3-smart-browser .
 COPY --from=builder /app/web ./web
 
 # Create necessary directories and set permissions
@@ -50,4 +50,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
 
 # Run the application
-CMD ["./s3-browser"]
+CMD ["./s3-smart-browser"]

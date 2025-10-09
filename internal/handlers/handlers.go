@@ -6,8 +6,8 @@ import (
 	"path"
 	"strconv"
 
-	"s3-browser/internal/s3"
-	"s3-browser/internal/types"
+	"s3-smart-browser/internal/s3"
+	"s3-smart-browser/internal/types"
 )
 
 type Handlers struct {

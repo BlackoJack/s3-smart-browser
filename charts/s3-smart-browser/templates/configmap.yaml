@@ -1,0 +1,18 @@
+{{- if .Values.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "s3-smart-browser.fullname" . }}-config
+  labels:
+    {{- include "s3-smart-browser.labels" . | nindent 4 }}
+data:
+  AWS_REGION: {{ .Values.config.aws.region | quote }}
+  AWS_BUCKET: {{ .Values.config.aws.bucket | quote }}
+  {{- if .Values.config.aws.endpoint }}
+  AWS_ENDPOINT: {{ .Values.config.aws.endpoint | quote }}
+  {{- end }}
+  SERVER_PORT: {{ .Values.config.server.port | quote }}
+  {{- if .Values.config.app.baseDirectory }}
+  BASE_DIRECTORY: {{ .Values.config.app.baseDirectory | quote }}
+  {{- end }}
+{{- end }}

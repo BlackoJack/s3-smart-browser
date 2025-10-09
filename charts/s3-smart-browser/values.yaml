@@ -1,0 +1,96 @@
+# Default values for s3-smart-browser
+
+replicaCount: 2
+
+image:
+  repository: s3-smart-browser
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: s3-smart-browser.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  # AWS configuration
+  aws:
+    region: "us-east-1"
+    bucket: ""
+    endpoint: ""
+  
+  # Server configuration
+  server:
+    port: 8080
+  
+  # App configuration
+  app:
+    baseDirectory: ""
+    pageSize: 100
+
+# Secrets - should be provided via external Secret or values
+secrets:
+  awsAccessKeyId: ""
+  awsSecretAccessKey: ""
+
+# Environment variables
+env: []

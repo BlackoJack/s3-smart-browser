@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"s3-browser/internal/config"
-	"s3-browser/internal/handlers"
-	"s3-browser/internal/s3"
+	"s3-smart-browser/internal/config"
+	"s3-smart-browser/internal/handlers"
+	"s3-smart-browser/internal/s3"
 )
 
 func main() {

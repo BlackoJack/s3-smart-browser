@@ -1,4 +1,4 @@
-module s3-browser
+module s3-smart-browser
 
 go 1.21
 

@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  s3-browser:
+  s3-smart-browser:
     build:
       context: .
     ports:
@@ -21,8 +21,8 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - s3-browser-network
+      - s3-smart-browser-network
 
 networks:
-  s3-browser-network:
+  s3-smart-browser-network:
     driver: bridge
