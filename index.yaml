@@ -1,0 +1,29 @@
+apiVersion: v1
+entries:
+  s3-smart-browser:
+  - annotations:
+      artifacthub.io/changes: |
+        - Initial release of S3 Browser
+      artifacthub.io/images: |
+        - name: s3-smart-browser
+          image: ghcr.io/blackojack/s3-smart-browser:latest
+      artifacthub.io/links: |
+        - name: Source Code
+          url: https://github.com/BlackoJack/s3-smart-browser
+    apiVersion: v2
+    appVersion: c117d2e7bd9e7e8d3f9258073c4d2abafcb4b418
+    created: "2025-10-09T10:11:12.696842035Z"
+    description: A modern S3 file browser with directory listing and download capabilities
+    digest: a6694956d4d6c6e91af599a7bd3de6ef5b14231e88b545fe252f51206ce336d0
+    maintainers:
+    - email: devopsnskru@gmail.com
+      name: Raenko Ivan
+      url: https://github.com/BlackoJack
+    name: s3-smart-browser
+    sources:
+    - https://github.com/BlackoJack/s3-smart-browser
+    type: application
+    urls:
+    - https://BlackoJack.github.io/s3-smart-browser/s3-smart-browser-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-10-09T10:11:12.696222245Z"
