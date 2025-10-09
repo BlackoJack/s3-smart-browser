@@ -4,7 +4,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/blackojack/s3-smart-browser
-#  tag: 1.0.4
+#  tag: 1.0.5
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -20,14 +20,14 @@ podLabels: {}
 
 podSecurityContext:
   runAsNonRoot: true
-  runAsUser: 1001
-  runAsGroup: 1001
-  fsGroup: 1001
+  runAsUser: 100
+  runAsGroup: 101
+  fsGroup: 101
 
 securityContext:
   allowPrivilegeEscalation: false
   runAsNonRoot: true
-  runAsUser: 1001
+  runAsUser: 100
   capabilities:
     drop:
       - ALL
