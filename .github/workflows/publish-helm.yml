@@ -1,16 +1,20 @@
-name: Publish Helm Chart
+name: Publish Helm Chart and Repository
 
 on:
   release:
     types: [published]
+  push:
+    branches: [ main ]  # Optional: also update repo on pushes to main
 
 jobs:
   publish-helm:
-    name: Publish Helm Chart
+    name: Publish Helm Chart and Update Repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+      pages: write
+      id-token: write
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -29,6 +33,19 @@ jobs:
         helm package charts/s3-smart-browser -d ./helm-packages --app-version ${{ github.ref_name }}
         echo "chart_file=$(ls ./helm-packages/s3-smart-browser-*.tgz)" >> $GITHUB_OUTPUT
 
+    - name: Download existing index.yaml (if any)
+      run: |
+        # Try to download existing index to merge with new package
+        curl -f -L -o existing-index.yaml https://blackojack.github.io/s3-smart-browser/index.yaml || echo "No existing index.yaml found"
+
+    - name: Generate or update index.yaml
+      run: |
+        if [ -f existing-index.yaml ]; then
+          helm repo index ./helm-packages --url https://blackojack.github.io/s3-smart-browser --merge existing-index.yaml
+        else
+          helm repo index ./helm-packages --url https://blackojack.github.io/s3-smart-browser
+        fi
+
     - name: Upload Helm chart to Release
       uses: actions/upload-release-asset@v1
       env:
@@ -38,3 +55,14 @@ jobs:
         asset_path: ${{ steps.package.outputs.chart_file }}
         asset_name: s3-smart-browser-${{ github.ref_name }}.tgz
         asset_content_type: application/gzip
+
+    - name: Setup GitHub Pages
+      uses: actions/configure-pages@v3
+
+    - name: Upload repository files to GitHub Pages
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: ./helm-packages/
+
+    - name: Deploy to GitHub Pages
+      uses: actions/deploy-pages@v2
