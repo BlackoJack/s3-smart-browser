@@ -1,0 +1,284 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.breadcrumb {
+    font-size: 14px;
+    color: #7f8c8d;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.file-list {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid #ecf0f1;
+    transition: background-color 0.2s;
+}
+
+.file-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-icon {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+.file-icon.folder {
+    color: #f39c12;
+}
+
+.file-icon.file {
+    color: #3498db;
+}
+
+.file-info {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.file-name:hover {
+    color: #3498db;
+}
+
+.file-size {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 2px;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-download {
+    background-color: #27ae60;
+    color: white;
+}
+
+.btn-download:hover {
+    background-color: #229954;
+}
+
+.btn-direct {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-direct:hover {
+    background-color: #2980b9;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #7f8c8d;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #95a5a6;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.back-button:hover {
+    background: #7f8c8d;
+}
+
+/* Footer Styles */
+.footer {
+    margin-top: 40px;
+    padding: 20px 0;
+    border-top: 1px solid #e1e8ed;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.developer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.developer-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: white;
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-link {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.github-icon {
+    flex-shrink: 0;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .developer-info {
+        align-items: center;
+    }
+    
+    .footer-link {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Дополнительные улучшения для основного контента */
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.footer {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Улучшения для файлового списка */
+.file-list {
+    min-height: 400px;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    font-size: 18px;
+    color: #7f8c8d;
+}
+
+/* Ховер-эффекты для кнопок */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
