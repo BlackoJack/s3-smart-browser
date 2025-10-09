@@ -8,6 +8,8 @@ jobs:
   publish-helm:
     name: Publish Helm Chart
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout code
