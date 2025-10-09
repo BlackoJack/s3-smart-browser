@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  s3-browser:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_REGION=${AWS_REGION}
+      - SERVER_PORT=8080
+      - BASE_DIRECTORY=${BASE_DIRECTORY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - s3-browser-network
+
+networks:
+  s3-browser-network:
+    driver: bridge
