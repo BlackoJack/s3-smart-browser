@@ -2,8 +2,8 @@ apiVersion: v2
 name: s3-smart-browser
 description: A modern S3 file browser with directory listing and download capabilities
 type: application
-version: "1.0.5"
-appVersion: "1.0.5"
+version: "1.0.6"
+appVersion: "1.0.6"
 
 annotations:
   artifacthub.io/changes: |
