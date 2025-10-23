@@ -1,12 +1,16 @@
 package main
 
 import (
-	"log"
-	"net/http"
+    "image"
+    "image/color"
+    "image/draw"
+    "image/png"
+    "log"
+    "net/http"
 
-	"s3-smart-browser/internal/config"
-	"s3-smart-browser/internal/handlers"
-	"s3-smart-browser/internal/s3"
+    "s3-smart-browser/internal/config"
+    "s3-smart-browser/internal/handlers"
+    "s3-smart-browser/internal/s3"
 )
 
 func main() {
@@ -30,9 +34,22 @@ func main() {
 	mux.HandleFunc("/api/download", h.DownloadFile)
 	mux.HandleFunc("/api/version", h.GetVersion)
 
-	// Static files
+    // Generated icons (ensure PWA required icons exist)
+    mux.HandleFunc("/static/images/icon-192x192.png", serveGeneratedIcon(192))
+    mux.HandleFunc("/static/images/icon-512x512.png", serveGeneratedIcon(512))
+    mux.HandleFunc("/static/images/favicon-32x32.png", serveGeneratedIcon(32))
+    mux.HandleFunc("/static/images/favicon-16x16.png", serveGeneratedIcon(16))
+    mux.HandleFunc("/static/images/apple-touch-icon.png", serveGeneratedIcon(180))
+
+    // Static files
 	mux.Handle("/static/", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
+
+    // Serve service worker at root scope
+    mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/javascript")
+        http.ServeFile(w, r, "web/static/js/sw.js")
+    })
 
 	// UI
 	mux.HandleFunc("/", h.ServeUI)
@@ -47,4 +64,20 @@ func main() {
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(server.ListenAndServe())
+}
+
+// serveGeneratedIcon dynamically creates a solid-color PNG of the given size.
+func serveGeneratedIcon(size int) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        img := image.NewRGBA(image.Rect(0, 0, size, size))
+        // Theme color #667eea
+        theme := color.RGBA{R: 0x66, G: 0x7e, B: 0xea, A: 0xff}
+        draw.Draw(img, img.Bounds(), &image.Uniform{C: theme}, image.Point{}, draw.Src)
+
+        w.Header().Set("Content-Type", "image/png")
+        if err := png.Encode(w, img); err != nil {
+            http.Error(w, "failed to generate icon", http.StatusInternalServerError)
+            return
+        }
+    }
 }
