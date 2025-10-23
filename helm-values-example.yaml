@@ -1,0 +1,97 @@
+# Example Helm values for S3 Smart Browser
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/blackojack/s3-smart-browser
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 100
+  runAsGroup: 101
+  fsGroup: 101
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 100
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: s3-browser.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: s3-browser-tls
+      hosts:
+        - s3-browser.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Application configuration
+config:
+  # AWS configuration
+  aws:
+    region: "us-east-1"
+    bucket: "my-s3-bucket"
+    endpoint: ""  # For MinIO: "http://minio:9000"
+  
+  # Server configuration
+  server:
+    port: 8080
+  
+  # App configuration
+  app:
+    baseDirectory: "documents"  # Optional base directory
+
+# Secrets - should be provided via external Secret or values
+secrets:
+  awsAccessKeyId: "AKIAIOSFODNN7EXAMPLE"
+  awsSecretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+# Environment variables
+env: []
