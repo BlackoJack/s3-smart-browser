@@ -113,12 +113,10 @@ func (c *Client) ListDirectory(ctx context.Context, directoryPath string) (*type
 
 			fileName := strings.TrimPrefix(*obj.Key, prefix)
 			fileInfo := types.FileInfo{
-				Name:         fileName,
-				Path:         *obj.Key,
-				Size:         aws.ToInt64(obj.Size),
-				LastModified: aws.ToTime(obj.LastModified),
-				IsDirectory:  false,
-				ETag:         aws.ToString(obj.ETag),
+				Name:        fileName,
+				Path:        *obj.Key,
+				Size:        aws.ToInt64(obj.Size),
+				IsDirectory: false,
 			}
 
 			fileChan <- fileInfo
@@ -148,28 +146,6 @@ func (c *Client) GetFileURL(ctx context.Context, filePath string) (string, error
 	}
 
 	return presignedReq.URL, nil
-}
-
-func (c *Client) DownloadFile(ctx context.Context, filePath string) ([]byte, error) {
-	input := &s3.GetObjectInput{
-		Bucket: aws.String(c.bucket),
-		Key:    aws.String(filePath),
-	}
-
-	result, err := c.client.GetObject(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-	defer result.Body.Close()
-
-	// Читаем файл в память (для небольших файлов)
-	// Для больших файлов лучше использовать streaming напрямую в ResponseWriter
-	data, err := io.ReadAll(result.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }
 
 func (c *Client) StreamFile(ctx context.Context, filePath string, w io.Writer) error {
@@ -216,11 +192,9 @@ func (c *Client) GetFileInfo(ctx context.Context, filePath string) (*types.FileI
 	}
 
 	return &types.FileInfo{
-		Name:         path.Base(filePath),
-		Path:         filePath,
-		Size:         aws.ToInt64(result.ContentLength),
-		LastModified: aws.ToTime(result.LastModified),
-		IsDirectory:  false,
-		ETag:         aws.ToString(result.ETag),
+		Name:        path.Base(filePath),
+		Path:        filePath,
+		Size:        aws.ToInt64(result.ContentLength),
+		IsDirectory: false,
 	}, nil
 }

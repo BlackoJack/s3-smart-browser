@@ -122,14 +122,6 @@ h1 {
     background-color: #229954;
 }
 
-.btn-direct {
-    background-color: #3498db;
-    color: white;
-}
-
-.btn-direct:hover {
-    background-color: #2980b9;
-}
 
 .loading {
     text-align: center;

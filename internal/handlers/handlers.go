@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
-	"strconv"
 
 	"s3-smart-browser/internal/s3"
 	"s3-smart-browser/internal/types"
@@ -35,23 +34,6 @@ func (h *Handlers) ListDirectory(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, listing)
 }
 
-func (h *Handlers) DirectDownload(w http.ResponseWriter, r *http.Request) {
-	filePath := r.URL.Query().Get("file")
-	if filePath == "" {
-		h.sendError(w, "File path is required", http.StatusBadRequest)
-		return
-	}
-
-	url, err := h.s3Client.GetFileURL(r.Context(), filePath)
-	if err != nil {
-		h.sendError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Перенаправляем на presigned URL
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-}
-
 func (h *Handlers) DownloadFile(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Query().Get("file")
 	if filePath == "" {
@@ -72,36 +54,6 @@ func (h *Handlers) DownloadFile(w http.ResponseWriter, r *http.Request) {
 
 	// Перенаправляем на presigned URL
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-}
-
-func (h *Handlers) StreamDownload(w http.ResponseWriter, r *http.Request) {
-	filePath := r.URL.Query().Get("file")
-	if filePath == "" {
-		h.sendError(w, "File path is required", http.StatusBadRequest)
-		return
-	}
-
-	// Получаем информацию о файле для установки правильного Content-Length
-	ctx := r.Context()
-
-	// Сначала получим информацию о файле
-	fileInfo, err := h.s3Client.GetFileInfo(ctx, filePath)
-	if err != nil {
-		h.sendError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	fileName := path.Base(filePath)
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment; filename=\""+fileName+"\"")
-	w.Header().Set("Content-Length", strconv.FormatInt(fileInfo.Size, 10))
-
-	// Стримим файл напрямую из S3
-	err = h.s3Client.StreamFile(ctx, filePath, w)
-	if err != nil {
-		h.sendError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
 
 func (h *Handlers) ServeUI(w http.ResponseWriter, r *http.Request) {

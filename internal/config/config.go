@@ -20,7 +20,6 @@ type Config struct {
 	}
 	App struct {
 		BaseDirectory string
-		PageSize      int
 	}
 }
 
@@ -41,7 +40,6 @@ func Load() *Config {
 
 	// App Configuration
 	cfg.App.BaseDirectory = getEnv("BASE_DIRECTORY", "")
-	cfg.App.PageSize = 100
 
 	return cfg
 }
