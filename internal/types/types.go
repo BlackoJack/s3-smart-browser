@@ -5,6 +5,7 @@ type FileInfo struct {
 	Path        string `json:"path"`
 	Size        int64  `json:"size"`
 	IsDirectory bool   `json:"is_directory"`
+    MimeType    string `json:"mime_type,omitempty"`
 }
 
 type DirectoryListing struct {

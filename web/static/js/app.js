@@ -72,7 +72,7 @@ class S3Browser {
         const div = document.createElement('div');
         div.className = 'file-item';
         
-        const icon = file.is_directory ? '📁' : '📄';
+        const icon = this.getIconForItem(file);
         const size = file.is_directory ? '' : this.formatFileSize(file.size);
         
         div.innerHTML = `
@@ -92,6 +92,24 @@ class S3Browser {
         `;
         
         return div;
+    }
+
+    getIconForItem(file) {
+        if (file.is_directory) return '📁';
+        const mime = (file.mime_type || '').toLowerCase();
+        const name = (file.name || '').toLowerCase();
+        if (mime.startsWith('image/')) return '🖼️';
+        if (mime.startsWith('video/')) return '🎬';
+        if (mime.startsWith('audio/')) return '🎵';
+        if (mime === 'application/pdf') return '📕';
+        if (mime.includes('zip') || mime.includes('tar') || mime.includes('gzip') || mime.includes('7z')) return '🗜️';
+        if (mime.includes('excel') || name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) return '📊';
+        if (mime.includes('word') || name.endsWith('.doc') || name.endsWith('.docx')) return '📝';
+        if (mime.includes('powerpoint') || name.endsWith('.ppt') || name.endsWith('.pptx')) return '📈';
+        if (mime.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md')) return '📄';
+        if (name.endsWith('.json') || name.endsWith('.yaml') || name.endsWith('.yml') || name.endsWith('.xml')) return '🧾';
+        if (name.endsWith('.js') || name.endsWith('.ts') || name.endsWith('.go') || name.endsWith('.py') || name.endsWith('.java') || name.endsWith('.rb') || name.endsWith('.php') || name.endsWith('.cpp') || name.endsWith('.c') || name.endsWith('.cs') || name.endsWith('.sh')) return '💻';
+        return '📦';
     }
 
     handleItemClick(path, isDirectory) {
