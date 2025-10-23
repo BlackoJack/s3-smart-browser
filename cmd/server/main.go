@@ -41,13 +41,22 @@ func main() {
     mux.HandleFunc("/static/images/favicon-16x16.png", serveGeneratedIcon(16))
     mux.HandleFunc("/static/images/apple-touch-icon.png", serveGeneratedIcon(180))
 
+    // Generated screenshots referenced by manifest.json
+    mux.HandleFunc("/static/images/screenshot-desktop.png", serveGeneratedScreenshot(1280, 720))
+    mux.HandleFunc("/static/images/screenshot-mobile.png", serveGeneratedScreenshot(390, 844))
+
     // Static files
 	mux.Handle("/static/", http.StripPrefix("/static/",
 		http.FileServer(http.Dir("web/static"))))
 
     // Serve service worker at root scope
     mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+        // Ensure the service worker is always fresh and has root scope
         w.Header().Set("Content-Type", "application/javascript")
+        w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+        w.Header().Set("Pragma", "no-cache")
+        w.Header().Set("Expires", "0")
+        w.Header().Set("Service-Worker-Allowed", "/")
         http.ServeFile(w, r, "web/static/js/sw.js")
     })
 
@@ -77,6 +86,36 @@ func serveGeneratedIcon(size int) http.HandlerFunc {
         w.Header().Set("Content-Type", "image/png")
         if err := png.Encode(w, img); err != nil {
             http.Error(w, "failed to generate icon", http.StatusInternalServerError)
+            return
+        }
+    }
+}
+
+// serveGeneratedScreenshot dynamically creates a placeholder PNG screenshot of the given size.
+func serveGeneratedScreenshot(width, height int) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        img := image.NewRGBA(image.Rect(0, 0, width, height))
+
+        // Background color lighter variant of theme
+        background := color.RGBA{R: 0xF3, G: 0xF4, B: 0xF6, A: 0xFF} // #F3F4F6
+        draw.Draw(img, img.Bounds(), &image.Uniform{C: background}, image.Point{}, draw.Src)
+
+        // Add a simple header bar using the theme color
+        headerHeight := height / 10
+        headerRect := image.Rect(0, 0, width, headerHeight)
+        theme := color.RGBA{R: 0x66, G: 0x7e, B: 0xea, A: 0xff} // #667eea
+        draw.Draw(img, headerRect, &image.Uniform{C: theme}, image.Point{}, draw.Src)
+
+        // Add a simple content area card
+        cardMargin := width / 12
+        cardTop := headerHeight + (height / 20)
+        cardRect := image.Rect(cardMargin, cardTop, width-cardMargin, height-(height/12))
+        card := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
+        draw.Draw(img, cardRect, &image.Uniform{C: card}, image.Point{}, draw.Src)
+
+        w.Header().Set("Content-Type", "image/png")
+        if err := png.Encode(w, img); err != nil {
+            http.Error(w, "failed to generate screenshot", http.StatusInternalServerError)
             return
         }
     }
