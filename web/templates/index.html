@@ -4,13 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S3 Smart Browser</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Theme -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Smart S3 Browser - Browse and manage your S3 buckets with ease">
+    
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>S3 Smart Browser</h1>
-            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="header-content">
+                <div class="logo-title">
+                    <img src="/static/images/logo.svg" alt="S3 Smart Browser" class="logo">
+                    <h1>S3 Smart Browser</h1>
+                </div>
+                <div class="breadcrumb" id="breadcrumb"></div>
+            </div>
         </header>
 
         <main>
@@ -54,7 +73,7 @@
                         </a>
                     </div>
                     <div class="copyright">
-                        © 2024 BlackoJack
+                        © <span id="currentYear">2025</span> BlackoJack
                     </div>
                 </div>
             </div>

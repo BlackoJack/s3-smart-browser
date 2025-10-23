@@ -6,6 +6,8 @@ class S3Browser {
 
     init() {
         this.loadVersion();
+        this.updateCurrentYear();
+        this.registerServiceWorker();
         this.loadDirectory(this.currentPath);
     }
 
@@ -189,6 +191,58 @@ class S3Browser {
             statusElement.textContent = 'Disconnected';
             statusElement.className = 'stat-value status-disconnected';
         }
+    }
+
+    updateCurrentYear() {
+        const yearElement = document.getElementById('currentYear');
+        if (yearElement) {
+            yearElement.textContent = new Date().getFullYear();
+        }
+    }
+
+    async registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('/static/js/sw.js');
+                console.log('Service Worker registered successfully:', registration);
+                
+                // Проверяем обновления
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // Новый Service Worker установлен, показываем уведомление
+                            this.showUpdateNotification();
+                        }
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+            }
+        }
+    }
+
+    showUpdateNotification() {
+        // Создаем уведомление об обновлении
+        const notification = document.createElement('div');
+        notification.className = 'update-notification';
+        notification.innerHTML = `
+            <div class="update-content">
+                <span>🔄 New version available!</span>
+                <button onclick="window.location.reload()" class="update-btn">Update</button>
+                <button onclick="this.parentElement.parentElement.remove()" class="close-btn">×</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Автоматически скрываем через 10 секунд
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 10000);
     }
 }
 

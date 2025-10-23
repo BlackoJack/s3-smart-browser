@@ -24,9 +24,38 @@ header {
     margin-bottom: 20px;
 }
 
+.header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.logo-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
 h1 {
     color: #2c3e50;
-    margin-bottom: 10px;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .breadcrumb {
@@ -311,6 +340,36 @@ h1 {
         padding: 8px 16px;
         font-size: 14px;
     }
+    
+    .update-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .install-prompt {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+    }
+    
+    .header-content {
+        gap: 10px;
+    }
+    
+    .logo-title {
+        gap: 8px;
+    }
+    
+    .logo {
+        width: 28px;
+        height: 28px;
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
 }
 
 /* Дополнительные улучшения для основного контента */
@@ -362,4 +421,166 @@ main {
 .btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* PWA Update Notification */
+.update-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 300px;
+}
+
+.update-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+}
+
+.update-content span {
+    flex: 1;
+    font-weight: 500;
+}
+
+.update-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.update-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.close-btn {
+    background: none;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* PWA Install Prompt */
+.install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: white;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    animation: slideInUp 0.3s ease-out;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.install-prompt-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.install-prompt-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.install-prompt-text {
+    flex: 1;
+}
+
+.install-prompt-text h3 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.install-prompt-text p {
+    margin: 0;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.install-prompt-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.install-prompt-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.install-prompt-btn.primary {
+    background: #667eea;
+    color: white;
+}
+
+.install-prompt-btn.primary:hover {
+    background: #5a6fd8;
+}
+
+.install-prompt-btn.secondary {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #e9ecef;
+}
+
+.install-prompt-btn.secondary:hover {
+    background: #e9ecef;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
