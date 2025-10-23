@@ -1,20 +1,21 @@
 package s3
 
 import (
-	"context"
-	"io"
-	"path"
-	"strings"
-	"sync"
+    "context"
+    "io"
+    "mime"
+    "path"
+    "strings"
+    "sync"
 
-	"s3-smart-browser/internal/config"
-	"s3-smart-browser/internal/types"
+    "s3-smart-browser/internal/config"
+    "s3-smart-browser/internal/types"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+    "github.com/aws/aws-sdk-go-v2/aws"
+    awsconfig "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/credentials"
+    "github.com/aws/aws-sdk-go-v2/service/s3"
+    s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type Client struct {
@@ -108,7 +109,7 @@ func (c *Client) ListDirectory(ctx context.Context, directoryPath string) (*type
 		}
 
 		wg.Add(1)
-		go func(obj s3types.Object) {
+        go func(obj s3types.Object) {
 			defer wg.Done()
 
 			fileName := strings.TrimPrefix(*obj.Key, prefix)
@@ -118,6 +119,17 @@ func (c *Client) ListDirectory(ctx context.Context, directoryPath string) (*type
 				Size:        aws.ToInt64(obj.Size),
 				IsDirectory: false,
 			}
+
+            // Определение MIME-типа по расширению файла (без дополнительных S3 вызовов)
+            if ext := strings.ToLower(path.Ext(fileName)); ext != "" {
+                if mt := mime.TypeByExtension(ext); mt != "" {
+                    fileInfo.MimeType = mt
+                } else {
+                    fileInfo.MimeType = "application/octet-stream"
+                }
+            } else {
+                fileInfo.MimeType = "application/octet-stream"
+            }
 
 			fileChan <- fileInfo
 		}(obj)
@@ -191,10 +203,25 @@ func (c *Client) GetFileInfo(ctx context.Context, filePath string) (*types.FileI
 		return nil, err
 	}
 
-	return &types.FileInfo{
+    info := &types.FileInfo{
 		Name:        path.Base(filePath),
 		Path:        filePath,
 		Size:        aws.ToInt64(result.ContentLength),
 		IsDirectory: false,
-	}, nil
+    }
+
+    // Используем ContentType из S3, если он есть, иначе определяем по расширению
+    if result.ContentType != nil && *result.ContentType != "" {
+        info.MimeType = *result.ContentType
+    } else if ext := strings.ToLower(path.Ext(filePath)); ext != "" {
+        if mt := mime.TypeByExtension(ext); mt != "" {
+            info.MimeType = mt
+        } else {
+            info.MimeType = "application/octet-stream"
+        }
+    } else {
+        info.MimeType = "application/octet-stream"
+    }
+
+    return info, nil
 }
