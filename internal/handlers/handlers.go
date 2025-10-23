@@ -7,6 +7,7 @@ import (
 
 	"s3-smart-browser/internal/s3"
 	"s3-smart-browser/internal/types"
+	"s3-smart-browser/internal/version"
 )
 
 type Handlers struct {
@@ -63,6 +64,10 @@ func (h *Handlers) ServeUI(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) sendJSON(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
+}
+
+func (h *Handlers) GetVersion(w http.ResponseWriter, r *http.Request) {
+	h.sendJSON(w, version.GetVersion())
 }
 
 func (h *Handlers) sendError(w http.ResponseWriter, message string, statusCode int) {

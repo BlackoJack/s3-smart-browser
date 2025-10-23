@@ -5,6 +5,7 @@ class S3Browser {
     }
 
     init() {
+        this.loadVersion();
         this.loadDirectory(this.currentPath);
     }
 
@@ -28,6 +29,7 @@ class S3Browser {
     renderDirectory(listing) {
         this.currentPath = listing.path;
         this.updateBreadcrumb();
+        this.updateFooterStats(listing.files.length);
         
         const fileList = document.getElementById('fileList');
         fileList.innerHTML = '';
@@ -149,6 +151,44 @@ class S3Browser {
     showError(message) {
         const fileList = document.getElementById('fileList');
         fileList.innerHTML = `<div class="loading" style="color: #e74c3c;">Error: ${message}</div>`;
+        this.updateConnectionStatus(false);
+    }
+
+    async loadVersion() {
+        try {
+            const response = await fetch('/api/version');
+            const data = await response.json();
+            if (response.ok) {
+                // Используем версию из API, если она есть, иначе показываем dev
+                const version = data.version || 'dev';
+                document.getElementById('appVersion').textContent = version.startsWith('v') ? version : `v${version}`;
+                
+                // Дополнительная информация в консоли для разработчиков
+                if (data.git_commit) {
+                    console.log(`S3 Smart Browser ${version} (${data.git_commit.substring(0, 8)})`);
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load version:', error);
+            // Fallback на dev версию
+            document.getElementById('appVersion').textContent = 'vdev';
+        }
+    }
+
+    updateFooterStats(fileCount) {
+        document.getElementById('fileCount').textContent = fileCount;
+        this.updateConnectionStatus(true);
+    }
+
+    updateConnectionStatus(connected) {
+        const statusElement = document.getElementById('connectionStatus');
+        if (connected) {
+            statusElement.textContent = 'Connected';
+            statusElement.className = 'stat-value status-connected';
+        } else {
+            statusElement.textContent = 'Disconnected';
+            statusElement.className = 'stat-value status-disconnected';
+        }
     }
 }
 

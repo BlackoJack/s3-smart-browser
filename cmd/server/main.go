@@ -28,6 +28,7 @@ func main() {
 	// API endpoints
 	mux.HandleFunc("/api/list", h.ListDirectory)
 	mux.HandleFunc("/api/download", h.DownloadFile)
+	mux.HandleFunc("/api/version", h.GetVersion)
 
 	// Static files
 	mux.Handle("/static/", http.StripPrefix("/static/",

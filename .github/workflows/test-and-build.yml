@@ -1,0 +1,91 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Полная история для git describe
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+
+    - name: Get version info
+      id: version
+      run: |
+        VERSION=$(git describe --tags --always --dirty)
+        GIT_COMMIT="${{ github.sha }}"
+        BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "GIT_COMMIT=$GIT_COMMIT" >> $GITHUB_OUTPUT
+        echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        echo "Commit: $GIT_COMMIT"
+        echo "Build time: $BUILD_TIME"
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build application
+      run: |
+        go build \
+          -ldflags "-X s3-smart-browser/internal/version.Version=${{ steps.version.outputs.VERSION }} -X s3-smart-browser/internal/version.GitCommit=${{ steps.version.outputs.GIT_COMMIT }} -X s3-smart-browser/internal/version.BuildTime=${{ steps.version.outputs.BUILD_TIME }}" \
+          -o s3-smart-browser \
+          cmd/server/main.go
+
+    - name: Test version API
+      run: |
+        ./s3-smart-browser &
+        SERVER_PID=$!
+        sleep 3
+        
+        # Тестируем API версии
+        VERSION_RESPONSE=$(curl -s http://localhost:8080/api/version)
+        echo "Version API response: $VERSION_RESPONSE"
+        
+        # Проверяем, что версия корректная
+        echo "$VERSION_RESPONSE" | jq -e '.version' || exit 1
+        echo "$VERSION_RESPONSE" | jq -e '.git_commit' || exit 1
+        echo "$VERSION_RESPONSE" | jq -e '.build_time' || exit 1
+        
+        kill $SERVER_PID
+
+    - name: Build Docker image (test)
+      run: |
+        docker build \
+          --build-arg VERSION="${{ steps.version.outputs.VERSION }}" \
+          --build-arg GIT_COMMIT="${{ steps.version.outputs.GIT_COMMIT }}" \
+          --build-arg BUILD_TIME="${{ steps.version.outputs.BUILD_TIME }}" \
+          -t s3-smart-browser-test .
+
+    - name: Test Docker version API
+      run: |
+        docker run -d --name s3-test -p 8080:8080 s3-smart-browser-test
+        sleep 5
+        
+        # Тестируем API версии в Docker
+        VERSION_RESPONSE=$(curl -s http://localhost:8080/api/version)
+        echo "Docker Version API response: $VERSION_RESPONSE"
+        
+        # Проверяем, что версия корректная
+        echo "$VERSION_RESPONSE" | jq -e '.version' || exit 1
+        echo "$VERSION_RESPONSE" | jq -e '.git_commit' || exit 1
+        echo "$VERSION_RESPONSE" | jq -e '.build_time' || exit 1
+        
+        docker stop s3-test
+        docker rm s3-test

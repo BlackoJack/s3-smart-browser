@@ -37,6 +37,23 @@ jobs:
           type=ref,event=tag
           type=sha,prefix=
 
+    - name: Get version info
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          VERSION="${{ github.ref_name }}"
+        else
+          VERSION=$(git describe --tags --always --dirty)
+        fi
+        GIT_COMMIT="${{ github.sha }}"
+        BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "GIT_COMMIT=$GIT_COMMIT" >> $GITHUB_OUTPUT
+        echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        echo "Commit: $GIT_COMMIT"
+        echo "Build time: $BUILD_TIME"
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
@@ -45,3 +62,7 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          GIT_COMMIT=${{ steps.version.outputs.GIT_COMMIT }}
+          BUILD_TIME=${{ steps.version.outputs.BUILD_TIME }}

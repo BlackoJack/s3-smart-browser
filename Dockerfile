@@ -16,8 +16,15 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o s3-smart-browser ./cmd/server/
+# Build arguments for version information
+ARG VERSION=dev
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
+
+# Build the application with version information
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X s3-smart-browser/internal/version.Version=${VERSION} -X s3-smart-browser/internal/version.GitCommit=${GIT_COMMIT} -X s3-smart-browser/internal/version.BuildTime=${BUILD_TIME}" \
+    -a -installsuffix cgo -o s3-smart-browser ./cmd/server/
 
 # Runtime stage
 FROM alpine:latest
