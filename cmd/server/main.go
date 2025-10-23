@@ -40,6 +40,15 @@ func main() {
     mux.HandleFunc("/static/images/favicon-32x32.png", serveGeneratedIcon(32))
     mux.HandleFunc("/static/images/favicon-16x16.png", serveGeneratedIcon(16))
     mux.HandleFunc("/static/images/apple-touch-icon.png", serveGeneratedIcon(180))
+    // Generated screenshots to avoid 404s referenced by manifest
+    mux.HandleFunc("/static/images/screenshot-desktop.png", serveGeneratedImage(1280, 720))
+    mux.HandleFunc("/static/images/screenshot-mobile.png", serveGeneratedImage(390, 844))
+
+    // Serve web app manifest with correct MIME type
+    mux.HandleFunc("/static/manifest.json", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/manifest+json")
+        http.ServeFile(w, r, "web/static/manifest.json")
+    })
 
     // Static files
 	mux.Handle("/static/", http.StripPrefix("/static/",
@@ -48,6 +57,12 @@ func main() {
     // Serve service worker at root scope
     mux.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/javascript")
+        // Avoid caching so updates are picked up immediately
+        w.Header().Set("Cache-Control", "no-cache")
+        // Allow the service worker to control the root scope even if
+        // the script isn't located at the root path in some deployments
+        // (required when registering with a broader scope).
+        w.Header().Set("Service-Worker-Allowed", "/")
         http.ServeFile(w, r, "web/static/js/sw.js")
     })
 
@@ -77,6 +92,22 @@ func serveGeneratedIcon(size int) http.HandlerFunc {
         w.Header().Set("Content-Type", "image/png")
         if err := png.Encode(w, img); err != nil {
             http.Error(w, "failed to generate icon", http.StatusInternalServerError)
+            return
+        }
+    }
+}
+
+// serveGeneratedImage creates a solid-color PNG of the given size (WxH).
+func serveGeneratedImage(width, height int) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        img := image.NewRGBA(image.Rect(0, 0, width, height))
+        // Theme color #667eea
+        theme := color.RGBA{R: 0x66, G: 0x7e, B: 0xea, A: 0xff}
+        draw.Draw(img, img.Bounds(), &image.Uniform{C: theme}, image.Point{}, draw.Src)
+
+        w.Header().Set("Content-Type", "image/png")
+        if err := png.Encode(w, img); err != nil {
+            http.Error(w, "failed to generate image", http.StatusInternalServerError)
             return
         }
     }
