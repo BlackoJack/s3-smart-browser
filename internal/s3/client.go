@@ -121,15 +121,7 @@ func (c *Client) ListDirectory(ctx context.Context, directoryPath string) (*type
 			}
 
             // Определение MIME-типа по расширению файла (без дополнительных S3 вызовов)
-            if ext := strings.ToLower(path.Ext(fileName)); ext != "" {
-                if mt := mime.TypeByExtension(ext); mt != "" {
-                    fileInfo.MimeType = mt
-                } else {
-                    fileInfo.MimeType = "application/octet-stream"
-                }
-            } else {
-                fileInfo.MimeType = "application/octet-stream"
-            }
+            fileInfo.MimeType = detectMimeTypeByExtension(fileName)
 
 			fileChan <- fileInfo
 		}(obj)
@@ -213,15 +205,131 @@ func (c *Client) GetFileInfo(ctx context.Context, filePath string) (*types.FileI
     // Используем ContentType из S3, если он есть, иначе определяем по расширению
     if result.ContentType != nil && *result.ContentType != "" {
         info.MimeType = *result.ContentType
-    } else if ext := strings.ToLower(path.Ext(filePath)); ext != "" {
-        if mt := mime.TypeByExtension(ext); mt != "" {
-            info.MimeType = mt
-        } else {
-            info.MimeType = "application/octet-stream"
-        }
     } else {
-        info.MimeType = "application/octet-stream"
+        info.MimeType = detectMimeTypeByExtension(filePath)
     }
 
     return info, nil
+}
+
+// detectMimeTypeByExtension пытается определить MIME-тип по расширению имени файла
+// Сначала использует стандартный mime.TypeByExtension, затем применяет расширенную карту
+// наиболее распространённых типов. Возвращает "application/octet-stream" по умолчанию.
+func detectMimeTypeByExtension(fileName string) string {
+    ext := strings.ToLower(path.Ext(fileName))
+    if ext == "" {
+        return "application/octet-stream"
+    }
+
+    if mt := mime.TypeByExtension(ext); mt != "" {
+        return mt
+    }
+
+    switch ext {
+    // Images
+    case ".jpg", ".jpeg", ".jpe":
+        return "image/jpeg"
+    case ".png":
+        return "image/png"
+    case ".gif":
+        return "image/gif"
+    case ".bmp":
+        return "image/bmp"
+    case ".webp":
+        return "image/webp"
+    case ".svg":
+        return "image/svg+xml"
+    case ".heic":
+        return "image/heic"
+
+    // Video
+    case ".mp4", ".m4v":
+        return "video/mp4"
+    case ".mov":
+        return "video/quicktime"
+    case ".webm":
+        return "video/webm"
+    case ".avi":
+        return "video/x-msvideo"
+    case ".mkv":
+        return "video/x-matroska"
+
+    // Audio
+    case ".mp3":
+        return "audio/mpeg"
+    case ".wav":
+        return "audio/wav"
+    case ".flac":
+        return "audio/flac"
+    case ".ogg", ".oga":
+        return "audio/ogg"
+
+    // Documents and archives
+    case ".pdf":
+        return "application/pdf"
+    case ".zip":
+        return "application/zip"
+    case ".tar":
+        return "application/x-tar"
+    case ".gz", ".tgz":
+        return "application/gzip"
+    case ".7z":
+        return "application/x-7z-compressed"
+    case ".rar":
+        return "application/vnd.rar"
+
+    // Office
+    case ".xlsx":
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    case ".xls":
+        return "application/vnd.ms-excel"
+    case ".csv":
+        return "text/csv"
+    case ".doc":
+        return "application/msword"
+    case ".docx":
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    case ".ppt":
+        return "application/vnd.ms-powerpoint"
+    case ".pptx":
+        return "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+    // Text and markup
+    case ".txt":
+        return "text/plain"
+    case ".md":
+        return "text/markdown"
+    case ".json":
+        return "application/json"
+    case ".yaml", ".yml":
+        return "application/x-yaml"
+    case ".xml":
+        return "application/xml"
+
+    // Code (best-effort)
+    case ".js":
+        return "application/javascript"
+    case ".ts":
+        return "text/typescript"
+    case ".go":
+        return "text/x-go"
+    case ".py":
+        return "text/x-python"
+    case ".java":
+        return "text/x-java-source"
+    case ".rb":
+        return "text/x-ruby"
+    case ".php":
+        return "application/x-php"
+    case ".cpp", ".cc", ".cxx":
+        return "text/x-c++src"
+    case ".c":
+        return "text/x-csrc"
+    case ".cs":
+        return "text/x-csharp"
+    case ".sh", ".bash":
+        return "text/x-shellscript"
+    }
+
+    return "application/octet-stream"
 }
