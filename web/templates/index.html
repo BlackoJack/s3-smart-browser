@@ -36,6 +36,24 @@
         </header>
 
         <main>
+            <div class="file-toolbar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="fileSearch" placeholder="Поиск по имени файла..." autocomplete="off">
+                    <button id="clearSearch" class="clear-search" aria-label="Очистить поиск">×</button>
+                </div>
+                <div class="sort-box">
+                    <label for="sortSelect">Сортировка</label>
+                    <select id="sortSelect">
+                        <option value="name-asc">Имя (А→Я)</option>
+                        <option value="name-desc">Имя (Я→А)</option>
+                        <option value="size-desc">Размер (по убыв.)</option>
+                        <option value="size-asc">Размер (по возр.)</option>
+                        <option value="date-desc">Дата (новые)</option>
+                        <option value="date-asc">Дата (старые)</option>
+                    </select>
+                </div>
+            </div>
             <div class="file-list" id="fileList">
                 <div class="loading">Loading...</div>
             </div>

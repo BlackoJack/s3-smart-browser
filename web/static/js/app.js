@@ -1,14 +1,55 @@
 class S3Browser {
     constructor() {
         this.currentPath = '/';
+        this.files = [];
+        this.searchQuery = '';
+        this.sortColumn = 'name';
+        this.sortDirection = 'asc';
         this.init();
     }
 
     init() {
+        this.cacheDom();
+        this.setupControls();
         this.loadVersion();
         this.updateCurrentYear();
         this.registerServiceWorker();
         this.loadDirectory(this.currentPath);
+    }
+
+    cacheDom() {
+        this.fileListElement = document.getElementById('fileList');
+        this.searchInput = document.getElementById('fileSearch');
+        this.clearSearchButton = document.getElementById('clearSearch');
+        this.sortSelect = document.getElementById('sortSelect');
+    }
+
+    setupControls() {
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (event) => {
+                this.searchQuery = event.target.value;
+                this.renderFileTable();
+            });
+        }
+
+        if (this.clearSearchButton) {
+            this.clearSearchButton.addEventListener('click', () => {
+                if (!this.searchInput) return;
+                this.searchQuery = '';
+                this.searchInput.value = '';
+                this.renderFileTable();
+            });
+        }
+
+        if (this.sortSelect) {
+            this.sortSelect.value = `${this.sortColumn}-${this.sortDirection}`;
+            this.sortSelect.addEventListener('change', (event) => {
+                const [column, direction] = event.target.value.split('-');
+                this.sortColumn = column;
+                this.sortDirection = direction;
+                this.renderFileTable();
+            });
+        }
     }
 
     async loadDirectory(path) {
@@ -30,68 +71,154 @@ class S3Browser {
 
     renderDirectory(listing) {
         this.currentPath = listing.path;
+        this.files = Array.isArray(listing.files) ? listing.files : [];
         this.updateBreadcrumb();
-        this.updateFooterStats(listing.files.length);
-        
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = '';
+        this.renderFileTable();
+    }
 
-        // Добавляем кнопку "Назад" если не в корне
-        if (listing.path !== '/') {
-            const parentPath = this.getParentPath(listing.path);
-            const backButton = this.createBackButton(parentPath);
-            fileList.appendChild(backButton);
+    renderFileTable() {
+        if (!this.fileListElement) return;
+
+        this.fileListElement.innerHTML = '';
+
+        const table = document.createElement('div');
+        table.className = 'file-table';
+        table.appendChild(this.createTableHeader());
+
+        if (this.currentPath !== '/') {
+            table.appendChild(this.createParentRow(this.getParentPath(this.currentPath)));
         }
 
-        // Сортируем: сначала папки, потом файлы
-        const sortedFiles = listing.files.sort((a, b) => {
-            if (a.is_directory && !b.is_directory) return -1;
-            if (!a.is_directory && b.is_directory) return 1;
-            return a.name.localeCompare(b.name);
+        const processedFiles = this.getProcessedFiles();
+
+        if (processedFiles.length === 0) {
+            this.fileListElement.appendChild(table);
+            this.fileListElement.appendChild(this.createEmptyState());
+            this.updateFooterStats(0);
+            return;
+        }
+
+        processedFiles.forEach(file => {
+            table.appendChild(this.createFileRow(file));
         });
 
-        sortedFiles.forEach(file => {
-            const fileElement = this.createFileElement(file);
-            fileList.appendChild(fileElement);
-        });
+        this.fileListElement.appendChild(table);
+        this.updateFooterStats(processedFiles.length);
     }
 
-    createBackButton(parentPath) {
-        const div = document.createElement('div');
-        div.className = 'file-item';
-        div.innerHTML = `
-            <div class="file-icon folder">📁</div>
-            <div class="file-info">
-                <div class="file-name" onclick="browser.navigateTo('${parentPath}')">..</div>
+    createTableHeader() {
+        const header = document.createElement('div');
+        header.className = 'file-row file-row-head';
+        header.innerHTML = `
+            <div class="file-cell cell-name">Имя</div>
+            <div class="file-cell cell-size">Размер</div>
+            <div class="file-cell cell-date">Изменён</div>
+            <div class="file-cell cell-actions">Действия</div>
+        `;
+        return header;
+    }
+
+    createEmptyState() {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        if (this.searchQuery) {
+            empty.textContent = 'Ничего не найдено. Попробуйте изменить запрос.';
+        } else {
+            empty.textContent = 'Папка пуста.';
+        }
+        return empty;
+    }
+
+    createParentRow(parentPath) {
+        const row = document.createElement('div');
+        row.className = 'file-row file-row-parent';
+        row.innerHTML = `
+            <div class="file-cell cell-name">
+                <div class="file-icon folder">📁</div>
+                <button class="file-name link-button" onclick="browser.navigateTo(${JSON.stringify(parentPath)})">..</button>
+            </div>
+            <div class="file-cell cell-size">—</div>
+            <div class="file-cell cell-date">—</div>
+            <div class="file-cell cell-actions">
+                <button class="btn btn-ghost" onclick="browser.navigateTo(${JSON.stringify(parentPath)})">Назад</button>
             </div>
         `;
-        return div;
+        return row;
     }
 
-    createFileElement(file) {
-        const div = document.createElement('div');
-        div.className = 'file-item';
-        
+    createFileRow(file) {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+
         const icon = this.getIconForItem(file);
-        const size = file.is_directory ? '' : this.formatFileSize(file.size);
-        
-        div.innerHTML = `
-            <div class="file-icon ${file.is_directory ? 'folder' : 'file'}">${icon}</div>
-            <div class="file-info">
-                <div class="file-name" onclick="browser.handleItemClick('${file.path}', ${file.is_directory})">
+        const size = file.is_directory ? '—' : this.formatFileSize(file.size);
+        const modified = file.last_modified ? this.formatDate(file.last_modified) : '—';
+
+        row.innerHTML = `
+            <div class="file-cell cell-name">
+                <div class="file-icon ${file.is_directory ? 'folder' : 'file'}">${icon}</div>
+                <button class="file-name link-button" onclick="browser.handleItemClick(${JSON.stringify(file.path)}, ${file.is_directory})">
                     ${this.escapeHtml(file.name)}
-                </div>
-                ${size ? `<div class="file-size">${size}</div>` : ''}
+                </button>
             </div>
-            <div class="file-actions">
+            <div class="file-cell cell-size">${size}</div>
+            <div class="file-cell cell-date">${modified}</div>
+            <div class="file-cell cell-actions">
                 ${!file.is_directory ? `
                     <a href="/api/download?file=${encodeURIComponent(file.path)}" 
-                       class="btn btn-download" download>Download</a>
+                       class="btn btn-download" download>Скачать</a>
                 ` : ''}
             </div>
         `;
-        
-        return div;
+
+        return row;
+    }
+
+    getProcessedFiles() {
+        if (!Array.isArray(this.files)) return [];
+
+        let files = [...this.files];
+
+        if (this.searchQuery.trim()) {
+            const query = this.searchQuery.trim().toLowerCase();
+            files = files.filter(file => (file.name || '').toLowerCase().includes(query));
+        }
+
+        return files.sort((a, b) => this.sortFiles(a, b));
+    }
+
+    sortFiles(a, b) {
+        if (a.is_directory !== b.is_directory) {
+            return a.is_directory ? -1 : 1;
+        }
+
+        const direction = this.sortDirection === 'asc' ? 1 : -1;
+
+        switch (this.sortColumn) {
+            case 'size': {
+                const sizeA = a.is_directory ? -1 : (a.size || 0);
+                const sizeB = b.is_directory ? -1 : (b.size || 0);
+                if (sizeA === sizeB) break;
+                return direction * (sizeA - sizeB);
+            }
+            case 'date': {
+                const dateA = a.last_modified ? new Date(a.last_modified).getTime() : 0;
+                const dateB = b.last_modified ? new Date(b.last_modified).getTime() : 0;
+                if (dateA === dateB) break;
+                return direction * (dateA - dateB);
+            }
+            default:
+                return direction * this.collator().compare(a.name, b.name);
+        }
+
+        return direction * this.collator().compare(a.name, b.name);
+    }
+
+    collator() {
+        if (!this._collator) {
+            this._collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+        }
+        return this._collator;
     }
 
     getIconForItem(file) {
@@ -124,6 +251,21 @@ class S3Browser {
         this.loadDirectory(path);
     }
 
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) {
+            return '—';
+        }
+
+        return new Intl.DateTimeFormat('ru-RU', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+
     updateBreadcrumb() {
         const breadcrumb = document.getElementById('breadcrumb');
         const parts = this.currentPath.split('/').filter(p => p);
@@ -149,7 +291,7 @@ class S3Browser {
     formatFileSize(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
@@ -164,13 +306,15 @@ class S3Browser {
     }
 
     showLoading() {
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = '<div class="loading">Loading...</div>';
+        if (this.fileListElement) {
+            this.fileListElement.innerHTML = '<div class="loading">Loading...</div>';
+        }
     }
 
     showError(message) {
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = `<div class="loading" style="color: #e74c3c;">Error: ${message}</div>`;
+        if (this.fileListElement) {
+            this.fileListElement.innerHTML = `<div class="loading" style="color: #e74c3c;">Error: ${message}</div>`;
+        }
         this.updateConnectionStatus(false);
     }
 

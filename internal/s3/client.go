@@ -120,6 +120,10 @@ func (c *Client) ListDirectory(ctx context.Context, directoryPath string) (*type
 				IsDirectory: false,
 			}
 
+			if obj.LastModified != nil {
+				fileInfo.LastModified = *obj.LastModified
+			}
+
             // Определение MIME-типа по расширению файла (без дополнительных S3 вызовов)
             fileInfo.MimeType = detectMimeTypeByExtension(fileName)
 
